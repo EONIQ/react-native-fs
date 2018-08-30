@@ -818,7 +818,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getAllVideoAndImagePaths(, Promise promise) {
+  public void getAllVideoAndImagePaths(Promise promise) {
     Uri queryUri = MediaStore.Files.getContentUri("external");
     String[] projection = {
       MediaStore.Files.FileColumns._ID,
@@ -872,31 +872,29 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       MediaStore.Files.FileColumns.MEDIA_TYPE,
     };
 
-    boolean includeImageDir = options.getBoolean("image");
-    boolean includeVideoDir = options.getBoolean("video");
-    boolean includeAudioDir = options.getBoolean("audio");
-    boolean includePlaylistDir =options.getBoolean("playlist");
-
     String selection = "";
-    
-    if (includeImageDir) {
-      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-        + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
-    }
+    for (ReadableMapKeySetIterator iter = options.keySetIterator(); iter.hasNextKey();) {     
+      String key = iter.nextKey();  
 
-    if (includeVideoDir) {
-      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-        + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
-    }
-
-    if (includeAudioDir) {
-      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-        + MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
-    }
-
-    if (includePlaylistDir) {
-      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-        + MediaStore.Files.FileColumns.MEDIA_TYPE_PLAYLIST;
+      if (options.getBoolean(key)) {
+        int fileType;
+        if (key.equals("image")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+        } else if (key.equals("video")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+        } else if (key.equals("audio")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
+        } else if (key.equals("playlist")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_PLAYLIST;
+        } else {
+          continue;
+        }
+        
+        if (selection.length() > 0) {
+          selection += " OR ";
+        }
+        selection += (MediaStore.Files.FileColumns.MEDIA_TYPE + "=" + fileType);
+      }
     }
 
     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
@@ -912,7 +910,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
           String absolutePathOfDir = absolutePathOfMedia.substring(0, absolutePathOfMedia.lastIndexOf("/"));
 
-          if (!listOfMediaArray.contains(absolutePathOfDir)) {
+          if (!listOfMediaDirArray.contains(absolutePathOfDir)) {
             listOfMediaDirs.pushString(absolutePathOfDir);
             listOfMediaDirArray.add(absolutePathOfDir);
           }

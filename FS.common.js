@@ -135,10 +135,10 @@ type FSInfoResult = {
 };
 
 type GetMediaDirsOptions = {
-  image: boolean,
-  video: boolean,
-  audio: boolean,
-  playlist: boolean,
+  image?: boolean,
+  video?: boolean,
+  audio?: boolean,
+  playlist?: boolean,
 };
 
 /**
@@ -225,7 +225,7 @@ var RNFS = {
     return RNFSManager.getAllVideoAndImagePaths();
   },
 
-  getAllExternalMediaDirs(options: GetMediaDirsOptions): Promise<string> {
+  getAllExternalMediaDirs(options: GetMediaDirsOptions): Promise<Array<string>> {
     return RNFSManager.getAllExternalMediaDirs(options);
   },
 
