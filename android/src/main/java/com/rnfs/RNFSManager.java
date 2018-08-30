@@ -819,7 +819,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getAllMediaFiles(ReadableMap options, Promise promise) {
+  public void getAllExternalMediaFiles(ReadableMap options, Promise promise) {
     Uri queryUri = MediaStore.Files.getContentUri("external");
     String[] projection = {
       MediaStore.Files.FileColumns._ID,

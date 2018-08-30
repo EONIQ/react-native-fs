@@ -221,8 +221,8 @@ var RNFS = {
     return RNFSManager.getAllExternalFilesDirs();
   },
 
-  getAllMediaFiles(options: MediaQueryOptions): Promise<string> {
-    return RNFSManager.getAllVideoAndImagePaths(options);
+  getAllExternalMediaFiles(options: MediaQueryOptions): Promise<string> {
+    return RNFSManager.getAllExternalMediaFiles(options);
   },
 
   getAllExternalMediaDirs(options: MediaQueryOptions): Promise<Array<string>> {
