@@ -842,7 +842,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       int filenameColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE);
       while (cursor.moveToNext()) {
           String absolutePathOfImage = cursor.getString(pathColumnIndex);
-          String filename = cursor.getString(filenameColumnIndex);
+          String filename = absolutePathOfImage.substring(absolutePathOfImage.lastIndexOf("/") + 1, absolutePathOfImage.length - 1);
           WritableMap fileMap = Arguments.createMap();
           fileMap.putString("name", filename);
           fileMap.putString("path", absolutePathOfImage);
