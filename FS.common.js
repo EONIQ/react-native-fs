@@ -134,7 +134,7 @@ type FSInfoResult = {
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
 
-type GetMediaDirsOptions = {
+type MediaQueryOptions = {
   image?: boolean,
   video?: boolean,
   audio?: boolean,
@@ -221,11 +221,11 @@ var RNFS = {
     return RNFSManager.getAllExternalFilesDirs();
   },
 
-  getAllVideoAndImagePaths(): Promise<string> {
-    return RNFSManager.getAllVideoAndImagePaths();
+  getAllMediaFiles(options: MediaQueryOptions): Promise<string> {
+    return RNFSManager.getAllVideoAndImagePaths(options);
   },
 
-  getAllExternalMediaDirs(options: GetMediaDirsOptions): Promise<Array<string>> {
+  getAllExternalMediaDirs(options: MediaQueryOptions): Promise<Array<string>> {
     return RNFSManager.getAllExternalMediaDirs(options);
   },
 
