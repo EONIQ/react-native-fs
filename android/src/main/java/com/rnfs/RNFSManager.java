@@ -847,7 +847,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           fileMap.putString("name", filename);
           fileMap.putString("path", absolutePathOfImage);
           
-          listOfAllMediaFiles.pushMap(fileMap)
+          listOfAllMediaFiles.pushMap(fileMap);
       }
     } catch (RuntimeException e) {
       cursor.close();
