@@ -214,6 +214,10 @@ var RNFS = {
     return RNFSManager.getAllExternalFilesDirs();
   },
 
+  getAllVideoAndImagePath(): Promise<string> {
+    return RNFSManager.getAllVideoAndImagePath();
+  }
+
   unlink(filepath: string): Promise<void> {
     return RNFSManager.unlink(normalizeFilePath(filepath)).then(() => void 0);
   },

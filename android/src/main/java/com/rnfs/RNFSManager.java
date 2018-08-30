@@ -817,6 +817,48 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     promise.resolve(fs);
   }
 
+  @ReactMethod
+  public void getAllVideoAndImagePath(Promise promise) {
+    Uri queryUri = MediaStore.Files.getContentUri("external");
+    String[] projection = {
+      MediaStore.Files.FileColumns._ID,
+      MediaStore.Files.FileColumns.DATA,
+      MediaStore.Files.FileColumns.DATE_ADDED,
+      MediaStore.Files.FileColumns.MEDIA_TYPE,
+      MediaStore.Files.FileColumns.MIME_TYPE,
+      MediaStore.Files.FileColumns.TITLE,
+      MediaStore.Images.Media.BUCKET_DISPLAY_NAME
+    };
+
+    String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+      + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+      + " OR "
+      + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+      + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+
+    Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
+      queryUri, projection, selection,
+      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC",
+    );
+
+    WritableArray listOfAllImages = Arguments.createArray();
+    try {
+      int column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      int column_index_folder_name = 
+        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+      while (cursor.moveToNext()) {
+          String absolutePathOfImage = cursor.getString(column_index_data);
+          listOfAllImages.pushString(absolutePathOfImage);
+      }
+    } catch (RuntimeException e) {
+        return null;
+    } finally {
+      cursor.close();
+    }
+
+    promise.resolve(listOfAllImages);
+  }
+
   private void reject(Promise promise, String filepath, Exception ex) {
     if (ex instanceof FileNotFoundException) {
       rejectFileNotFound(promise, filepath);
