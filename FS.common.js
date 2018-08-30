@@ -134,6 +134,13 @@ type FSInfoResult = {
   freeSpace: number;    // The amount of available storage space on the device (in bytes).
 };
 
+type GetMediaDirsOptions = {
+  image: boolean,
+  video: boolean,
+  audio: boolean,
+  playlist: boolean,
+};
+
 /**
  * Generic function used by readFile and readFileAssets
  */
@@ -214,9 +221,13 @@ var RNFS = {
     return RNFSManager.getAllExternalFilesDirs();
   },
 
-  getAllVideoAndImagePath(): Promise<string> {
-    return RNFSManager.getAllVideoAndImagePath();
-  }
+  getAllVideoAndImagePaths(): Promise<string> {
+    return RNFSManager.getAllVideoAndImagePaths();
+  },
+
+  getAllExternalMediaDirs(options: GetMediaDirsOptions): Promise<string> {
+    return RNFSManager.getAllExternalMediaDirs(options);
+  },
 
   unlink(filepath: string): Promise<void> {
     return RNFSManager.unlink(normalizeFilePath(filepath)).then(() => void 0);

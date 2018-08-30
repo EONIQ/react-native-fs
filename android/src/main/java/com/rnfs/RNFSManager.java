@@ -818,7 +818,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getAllVideoAndImagePath(Promise promise) {
+  public void getAllVideoAndImagePaths(, Promise promise) {
     Uri queryUri = MediaStore.Files.getContentUri("external");
     String[] projection = {
       MediaStore.Files.FileColumns._ID,
@@ -838,25 +838,94 @@ public class RNFSManager extends ReactContextBaseJavaModule {
 
     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
       queryUri, projection, selection,
-      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC",
-    );
+      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
 
     WritableArray listOfAllImages = Arguments.createArray();
     try {
-      int column_index_data = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-      int column_index_folder_name = 
-        cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+      int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      // int folderNameColumnIndex = 
+      //   cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
+      // int titleColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.TITLE);
+      // int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      int folderNameColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.BUCKET_DISPLAY_NAME);
       while (cursor.moveToNext()) {
-          String absolutePathOfImage = cursor.getString(column_index_data);
+          String absolutePathOfImage = cursor.getString(pathColumnIndex);
           listOfAllImages.pushString(absolutePathOfImage);
       }
     } catch (RuntimeException e) {
-        return null;
+      cursor.close();
+      promise.reject(null, e.getMessage());
+      return;
     } finally {
       cursor.close();
     }
 
     promise.resolve(listOfAllImages);
+  }
+
+  @ReactMethod
+  public void getAllExternalMediaDirs(ReadableMap options, Promise promise) {
+    Uri queryUri = MediaStore.Files.getContentUri("external");
+    String[] projection = {
+      MediaStore.Files.FileColumns.DATA,
+      MediaStore.Files.FileColumns.DATE_ADDED,
+      MediaStore.Files.FileColumns.MEDIA_TYPE,
+    };
+
+    boolean includeImageDir = options.getBoolean("image");
+    boolean includeVideoDir = options.getBoolean("video");
+    boolean includeAudioDir = options.getBoolean("audio");
+    boolean includePlaylistDir =options.getBoolean("playlist");
+
+    String selection = "";
+    
+    if (includeImageDir) {
+      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+        + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+    }
+
+    if (includeVideoDir) {
+      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+        + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+    }
+
+    if (includeAudioDir) {
+      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+        + MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
+    }
+
+    if (includePlaylistDir) {
+      selection += MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+        + MediaStore.Files.FileColumns.MEDIA_TYPE_PLAYLIST;
+    }
+
+    Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
+      queryUri, projection, selection,
+      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+
+    WritableArray listOfMediaDirs = Arguments.createArray();
+    ArrayList<String> listOfMediaDirArray = new ArrayList<String>();
+    try {
+      int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      while (cursor.moveToNext()) {
+          String absolutePathOfMedia = cursor.getString(pathColumnIndex);
+
+          String absolutePathOfDir = absolutePathOfMedia.substring(0, absolutePathOfMedia.lastIndexOf("/"));
+
+          if (!listOfMediaArray.contains(absolutePathOfDir)) {
+            listOfMediaDirs.pushString(absolutePathOfDir);
+            listOfMediaDirArray.add(absolutePathOfDir);
+          }
+      }
+    } catch (RuntimeException e) {
+      cursor.close();
+      promise.reject(null, e.getMessage());
+      return;
+    } finally {
+      cursor.close();
+    }
+
+    promise.resolve(listOfMediaDirs);
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {
