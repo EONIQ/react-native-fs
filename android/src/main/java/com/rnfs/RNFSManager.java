@@ -830,7 +830,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       MediaStore.Files.FileColumns.TITLE,
     };
 
-    String selection = getMediaStoreQuerySelection(options);
+    ReadableMap queryParams = options.getMap("include");
+
+    String selection = getMediaStoreQuerySelection(queryParams);
 
     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
       queryUri, projection, selection,
@@ -840,7 +842,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     try {
       int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
       int filenameColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE);
-      while (cursor.moveToNext()) {
+      int length = options.getInt("length");
+      while (cursor.moveToNext() && cursor.getPosition() < length) {
           String absolutePathOfImage = cursor.getString(pathColumnIndex);
           String filename = absolutePathOfImage.substring(absolutePathOfImage.lastIndexOf("/") + 1, absolutePathOfImage.length());
           WritableMap fileMap = Arguments.createMap();
@@ -898,7 +901,9 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       MediaStore.Files.FileColumns.MEDIA_TYPE,
     };
 
-    String selection = getMediaStoreQuerySelection(options);
+    ReadableMap queryParams = options.getMap("include");
+
+    String selection = getMediaStoreQuerySelection(queryParams);
 
     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
       queryUri, projection, selection,
@@ -908,7 +913,8 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     ArrayList<String> templistOfMediaDirArray = new ArrayList<String>();
     try {
       int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-      while (cursor.moveToNext()) {
+      int length = options.getInt("length");
+      while (cursor.moveToNext() && cursor.getPosition() < length) {
           String absolutePathOfMedia = cursor.getString(pathColumnIndex);
 
           String absolutePathOfDir = absolutePathOfMedia.substring(0, absolutePathOfMedia.lastIndexOf("/"));
