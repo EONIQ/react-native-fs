@@ -221,12 +221,12 @@ var RNFS = {
     return RNFSManager.getAllExternalFilesDirs();
   },
 
-  getAllExternalMediaFiles(options: MediaQueryOptions): Promise<string> {
-    return RNFSManager.getAllExternalMediaFiles(options);
+  getExternalMediaFilePaths(options: MediaQueryOptions): Promise<string> {
+    return RNFSManager.getExternalMediaFilePaths(options);
   },
 
-  getAllExternalMediaDirs(options: MediaQueryOptions): Promise<Array<string>> {
-    return RNFSManager.getAllExternalMediaDirs(options);
+  getExternalMediaDirPaths(options: MediaQueryOptions): Promise<Array<string>> {
+    return RNFSManager.getExternalMediaDirPaths(options);
   },
 
   unlink(filepath: string): Promise<void> {

@@ -818,51 +818,6 @@ public class RNFSManager extends ReactContextBaseJavaModule {
     promise.resolve(fs);
   }
 
-  @ReactMethod
-  public void getAllExternalMediaFiles(ReadableMap options, Promise promise) {
-    Uri queryUri = MediaStore.Files.getContentUri("external");
-    String[] projection = {
-      MediaStore.Files.FileColumns._ID,
-      MediaStore.Files.FileColumns.DATA,
-      MediaStore.Files.FileColumns.DATE_ADDED,
-      MediaStore.Files.FileColumns.MEDIA_TYPE,
-      MediaStore.Files.FileColumns.MIME_TYPE,
-      MediaStore.Files.FileColumns.TITLE,
-    };
-
-    ReadableMap queryParams = options.getMap("include");
-
-    String selection = getMediaStoreQuerySelection(queryParams);
-
-    Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
-      queryUri, projection, selection,
-      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
-
-    WritableArray listOfAllMediaFiles = Arguments.createArray();
-    try {
-      int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-      int filenameColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE);
-      int length = options.getInt("length");
-      while (cursor.moveToNext() && cursor.getPosition() < length) {
-          String absolutePathOfImage = cursor.getString(pathColumnIndex);
-          String filename = absolutePathOfImage.substring(absolutePathOfImage.lastIndexOf("/") + 1, absolutePathOfImage.length());
-          WritableMap fileMap = Arguments.createMap();
-          fileMap.putString("name", filename);
-          fileMap.putString("path", absolutePathOfImage);
-          
-          listOfAllMediaFiles.pushMap(fileMap);
-      }
-    } catch (RuntimeException e) {
-      cursor.close();
-      promise.reject(null, e.getMessage());
-      return;
-    } finally {
-      cursor.close();
-    }
-
-    promise.resolve(listOfAllMediaFiles);
-  }
-
   private String getMediaStoreQuerySelection(ReadableMap options) {
     String selection = "";
     for (ReadableMapKeySetIterator iter = options.keySetIterator(); iter.hasNextKey();) {   
@@ -893,23 +848,55 @@ public class RNFSManager extends ReactContextBaseJavaModule {
   }
 
   @ReactMethod
-  public void getAllExternalMediaDirs(ReadableMap options, Promise promise) {
+  public void getExternalMediaFilePaths(ReadableMap options, Promise promise) {
     Uri queryUri = MediaStore.Files.getContentUri("external");
     String[] projection = {
       MediaStore.Files.FileColumns.DATA,
       MediaStore.Files.FileColumns.DATE_ADDED,
       MediaStore.Files.FileColumns.MEDIA_TYPE,
     };
-
     ReadableMap queryParams = options.getMap("include");
-
     String selection = getMediaStoreQuerySelection(queryParams);
 
     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
       queryUri, projection, selection,
       null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
 
-    WritableArray listOfMediaDirs = Arguments.createArray();
+    WritableArray listOfMediaPaths = Arguments.createArray();
+    try {
+      int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      int length = options.getInt("length");
+      while (cursor.moveToNext() && cursor.getPosition() < length) {
+          String absolutePathOfImage = cursor.getString(pathColumnIndex);          
+          listOfMediaPaths.pushString(absolutePathOfImage);
+      }
+    } catch (RuntimeException e) {
+      cursor.close();
+      promise.reject(null, e.getMessage());
+      return;
+    } finally {
+      cursor.close();
+    }
+
+    promise.resolve(listOfMediaPaths);
+  }
+
+  @ReactMethod
+  public void getExternalMediaDirPaths(ReadableMap options, Promise promise) {
+    Uri queryUri = MediaStore.Files.getContentUri("external");
+    String[] projection = {
+      MediaStore.Files.FileColumns.DATA,
+      MediaStore.Files.FileColumns.DATE_ADDED,
+      MediaStore.Files.FileColumns.MEDIA_TYPE,
+    };
+    ReadableMap queryParams = options.getMap("include");
+    String selection = getMediaStoreQuerySelection(queryParams);
+
+    Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
+      queryUri, projection, selection,
+      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+
+    WritableArray listOfMediaDirPaths = Arguments.createArray();
     ArrayList<String> templistOfMediaDirArray = new ArrayList<String>();
     try {
       int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
@@ -920,7 +907,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
           String absolutePathOfDir = absolutePathOfMedia.substring(0, absolutePathOfMedia.lastIndexOf("/"));
 
           if (!templistOfMediaDirArray.contains(absolutePathOfDir)) {
-            listOfMediaDirs.pushString(absolutePathOfDir);
+            listOfMediaDirPaths.pushString(absolutePathOfDir);
             templistOfMediaDirArray.add(absolutePathOfDir);
           }
       }
@@ -932,7 +919,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       cursor.close();
     }
 
-    promise.resolve(listOfMediaDirs);
+    promise.resolve(listOfMediaDirPaths);
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {
