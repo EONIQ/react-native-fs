@@ -21,6 +21,7 @@ import com.facebook.react.bridge.ReactContextBaseJavaModule;
 import com.facebook.react.bridge.ReactMethod;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
+import com.facebook.react.bridge.ReadableMapKeySetIterator;
 import com.facebook.react.bridge.WritableArray;
 import com.facebook.react.bridge.WritableMap;
 import com.facebook.react.module.annotations.ReactModule;
@@ -931,6 +932,100 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         }
       }
     );
+
+  private String getMediaStoreQuerySelection(ReadableMap options) {
+    String selection = "";
+    for (ReadableMapKeySetIterator iter = options.keySetIterator(); iter.hasNextKey();) {   
+      String key = iter.nextKey();  
+       if (options.getBoolean(key)) {
+        int fileType;
+        if (key.equals("image")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE;
+        } else if (key.equals("video")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+        } else if (key.equals("audio")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO;
+        } else if (key.equals("playlist")) {
+          fileType = MediaStore.Files.FileColumns.MEDIA_TYPE_PLAYLIST;
+        } else {
+          continue;
+        }
+        
+        if (selection.length() > 0) {
+          selection += " OR ";
+        }
+        selection += (MediaStore.Files.FileColumns.MEDIA_TYPE + "=" + fileType);
+      }
+    }
+     return selection;
+  }
+
+  @ReactMethod
+  public void getExternalMediaFilePaths(ReadableMap options, Promise promise) {
+    Uri queryUri = MediaStore.Files.getContentUri("external");
+    String[] projection = {
+      MediaStore.Files.FileColumns.DATA,
+      MediaStore.Files.FileColumns.DATE_ADDED,
+      MediaStore.Files.FileColumns.MEDIA_TYPE,
+    };
+    ReadableMap queryParams = options.getMap("include");
+    String selection = getMediaStoreQuerySelection(queryParams);
+     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
+      queryUri, projection, selection,
+      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+     WritableArray listOfMediaPaths = Arguments.createArray();
+    try {
+      int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      int length = options.getInt("length");
+      while (cursor.moveToNext() && cursor.getPosition() < length) {
+          String absolutePathOfImage = cursor.getString(pathColumnIndex);          
+          listOfMediaPaths.pushString(absolutePathOfImage);
+      }
+    } catch (RuntimeException e) {
+      cursor.close();
+      promise.reject(null, e.getMessage());
+      return;
+    } finally {
+      cursor.close();
+    }
+     promise.resolve(listOfMediaPaths);
+  }
+
+  @ReactMethod
+  public void getExternalMediaDirPaths(ReadableMap options, Promise promise) {
+    Uri queryUri = MediaStore.Files.getContentUri("external");
+    String[] projection = {
+      MediaStore.Files.FileColumns.DATA,
+      MediaStore.Files.FileColumns.DATE_ADDED,
+      MediaStore.Files.FileColumns.MEDIA_TYPE,
+    };
+    ReadableMap queryParams = options.getMap("include");
+    String selection = getMediaStoreQuerySelection(queryParams);
+     Cursor cursor = this.getReactApplicationContext().getContentResolver().query(
+      queryUri, projection, selection,
+      null, MediaStore.Files.FileColumns.DATE_ADDED + " DESC");
+     WritableArray listOfMediaDirPaths = Arguments.createArray();
+    ArrayList<String> templistOfMediaDirArray = new ArrayList<String>();
+    try {
+      int pathColumnIndex = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
+      int length = options.getInt("length");
+      while (cursor.moveToNext() && cursor.getPosition() < length) {
+          String absolutePathOfMedia = cursor.getString(pathColumnIndex);
+           String absolutePathOfDir = absolutePathOfMedia.substring(0, absolutePathOfMedia.lastIndexOf("/"));
+           if (!templistOfMediaDirArray.contains(absolutePathOfDir)) {
+            listOfMediaDirPaths.pushString(absolutePathOfDir);
+            templistOfMediaDirArray.add(absolutePathOfDir);
+          }
+      }
+    } catch (RuntimeException e) {
+      cursor.close();
+      promise.reject(null, e.getMessage());
+      return;
+    } finally {
+      cursor.close();
+    }
+     promise.resolve(listOfMediaDirPaths);
+>>>>>>> Added - use mediastore db to get media file in android
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {
