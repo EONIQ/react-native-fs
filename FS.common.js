@@ -208,7 +208,7 @@ var RNFS = {
     return RNFSManager.copyFile(normalizeFilePath(filepath), normalizeFilePath(destPath), options).then(() => void 0);
   },
 
-  getExternalMediaFilePaths(options: MediaQueryOptions): Promise<string> {
+  getExternalMediaFilePaths(options: MediaQueryOptions): Promise<Array<string>> {
     return RNFSManager.getExternalMediaFilePaths(options);
   },
 
