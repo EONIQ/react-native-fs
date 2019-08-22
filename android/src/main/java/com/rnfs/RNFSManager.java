@@ -1026,7 +1026,6 @@ public class RNFSManager extends ReactContextBaseJavaModule {
       cursor.close();
     }
      promise.resolve(listOfMediaDirPaths);
->>>>>>> Added - use mediastore db to get media file in android
   }
 
   private void reject(Promise promise, String filepath, Exception ex) {
