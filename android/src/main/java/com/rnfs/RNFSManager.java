@@ -932,6 +932,7 @@ public class RNFSManager extends ReactContextBaseJavaModule {
         }
       }
     );
+  }
 
   private String getMediaStoreQuerySelection(ReadableMap options) {
     String selection = "";
