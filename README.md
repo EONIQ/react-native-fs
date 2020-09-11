@@ -8,6 +8,17 @@ For RN < 0.57 and/or Gradle < 3 you MUST install react-native-fs at version @2.1
 
 For RN >= 0.57 and/or Gradle >= 3 you MUST install react-native-fs at version >= @2.13.2!
 
+## Table of Contents
+1. [Changelog](#Changelog)
+1. Usage
+    1. [iOS](#usage-ios)
+    1. [Android](#usage-android)
+    1. [Windows](#usage-windows)
+1. [Examples](#Examples)
+1. [API](#API)
+1. [Background Downloads Tutorial (iOS)](#background-downloads-tutorial-ios)
+1. [Test / Demo App](#test--demo-app)
+
 ## Changelog
 
 View the changelog [here](https://github.com/itinance/react-native-fs/blob/master/CHANGELOG.md).
@@ -431,7 +442,7 @@ Note: Android only. Will overwrite destPath if it already exists.
 
 ### `copyAssetsFileIOS(imageUri: string, destPath: string, width: number, height: number, scale : number = 1.0, compression : number = 1.0, resizeMode : string = 'contain'  ): Promise<string>`
 
-iOS-only: copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
+iOS-only (not available on Mac Catalyst): copies a file from camera-roll, that is prefixed with "assets-library://asset/asset.JPG?..."
 to a specific destination. It will download the original from iCloud if necessary.
 
 If width and height is > 0, the image will be resized to a specific size and a specific compression rate.
@@ -450,7 +461,7 @@ The promise will on success return the final destination of the file, as it was 
 
 ### copyAssetsVideoIOS(videoUri: string, destPath: string): Promise<string>
 
-iOS-only: copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...'
+iOS-only (not available on Mac Catalyst): copies a video from assets-library, that is prefixed with 'assets-library://asset/asset.MOV?...'
 to a specific destination.
 
 ### `unlink(filepath: string): Promise<void>`
@@ -505,12 +516,14 @@ type DownloadFileOptions = {
   background?: boolean;     // Continue the download in the background after the app terminates (iOS only)
   discretionary?: boolean;  // Allow the OS to control the timing and speed of the download to improve perceived performance  (iOS only)
   cacheable?: boolean;      // Whether the download can be stored in the shared NSURLCache (iOS only, defaults to true)
+  progressInterval?: number;
   progressDivider?: number;
   begin?: (res: DownloadBeginCallbackResult) => void;
   progress?: (res: DownloadProgressCallbackResult) => void;
   resumable?: () => void;    // only supported on iOS yet
   connectionTimeout?: number // only supported on Android yet
   readTimeout?: number       // supported on Android and iOS
+  backgroundTimeout?: number // Maximum time (in milliseconds) to download an entire resource (iOS only, useful for timing out background downloads)
 };
 ```
 ```
@@ -543,6 +556,9 @@ type DownloadProgressCallbackResult = {
   bytesWritten: number;   // The number of bytes written to the file so far
 };
 ```
+
+If `options.progressInterval` is provided, it will return progress events in the maximum frequency of `progressDivider`.
+For example, if `progressInterval` = 100, you will not receive callbacks more often than every 100th millisecond.
 
 If `options.progressDivider` is provided, it will return progress events that divided by `progressDivider`.
 

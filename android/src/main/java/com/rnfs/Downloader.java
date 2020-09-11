@@ -1,14 +1,10 @@
 package com.rnfs;
 
-import java.io.File;
 import java.io.FileOutputStream;
-import java.io.FileInputStream;
 import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.IOException;
 import java.net.URL;
-import java.net.URLConnection;
 import java.net.HttpURLConnection;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -90,7 +86,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
       if(statusCode >= 200 && statusCode < 300) {
         Map<String, List<String>> headers = connection.getHeaderFields();
 
-        Map<String, String> headersFlat = new HashMap<String, String>();
+        Map<String, String> headersFlat = new HashMap<>();
 
         for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
           String headerKey = entry.getKey();
@@ -110,12 +106,19 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         long total = 0;
         int count;
         double lastProgressValue = 0;
+        long lastProgressEmitTimestamp = 0;
 
         while ((count = input.read(data)) != -1) {
           if (mAbort.get()) throw new Exception("Download has been aborted");
 
           total += count;
-          if (param.progressDivider <= 0) {
+          if (param.progressInterval > 0) {
+            long timestamp = System.currentTimeMillis();
+            if (timestamp - lastProgressEmitTimestamp > param.progressInterval) {
+              lastProgressEmitTimestamp = timestamp;
+              publishProgress(new long[]{lengthOfFile, total});
+            }
+          } else if (param.progressDivider <= 0) {
             publishProgress(new long[]{lengthOfFile, total});
           } else {
             double progress = Math.round(((double) total * 100) / lengthOfFile);
@@ -134,7 +137,7 @@ public class Downloader extends AsyncTask<DownloadParams, long[], DownloadResult
         res.bytesWritten = total;
       }
       res.statusCode = statusCode;
-    } finally {
+ } finally {
       if (output != null) output.close();
       if (input != null) input.close();
       if (connection != null) connection.disconnect();
